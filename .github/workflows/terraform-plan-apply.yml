@@ -73,9 +73,8 @@ jobs:
   terraform-approval:
     name: Wait for Approval
     needs: terraform-plan
-    if: ${{ inputs.plan-only == false && inputs.auto-approve == false && needs.terraform-plan.outputs.has-changes == 'true' }}
+    if: ${{ inputs.plan-only == false && inputs.auto-approve == false && needs.terraform-plan.outputs.has_changes == 'true' }}
     runs-on: ubuntu-latest
-    environment: approval
     
     steps:
     - name: Download Plan Files
@@ -96,21 +95,40 @@ jobs:
         cat plan-summary.txt
         echo ""
         echo "=== APPROVAL REQUIRED ==="
-        echo "Please approve this deployment in the environment protection rules."
-        echo "The workflow will continue after approval."
+        echo "Please approve this deployment using the manual approval step below."
         
-    - name: Wait for Manual Approval
-      run: |
-        echo "Waiting for manual approval..."
-        echo "Please approve this deployment in the environment protection rules."
-        echo "The workflow will continue automatically after approval."
+    - name: Manual Approval
+      uses: trstringer/manual-approval@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        approvers: ${{ github.actor }}
+        minimum-approvals: 1
+        issue-title: "🚀 Terraform Approval Required - ${{ github.ref_name }}"
+        issue-body: |
+          ## Terraform Changes Ready to Apply
+          
+          **Branch:** ${{ github.ref_name }}
+          **Directory:** ${{ inputs.terraform-directory }}
+          **Workflow Run:** ${{ github.run_id }}
+          
+          ### Plan Summary
+          The Terraform plan has been generated and requires approval before applying changes.
+          
+          ### To Approve
+          Please review the plan above and approve this deployment if the changes are correct.
+          
+          ### Changes Detected
+          - Resources to add/modify/delete
+          - Plan file: Available in workflow artifacts
+          - Plan summary: Available in workflow artifacts
+          
+          **⚠️ Warning:** This will apply infrastructure changes to your environment.
 
   terraform-apply:
     name: Terraform Apply
     needs: [terraform-plan, terraform-approval]
-    if: ${{ inputs.plan-only == false && (inputs.auto-approve == true || needs.terraform-plan.outputs.has-changes == 'false' || (needs.terraform-plan.outputs.has-changes == 'true' && inputs.auto-approve == false)) }}
+    if: ${{ inputs.plan-only == false && (inputs.auto_approve == true || needs.terraform-plan.outputs.has_changes == 'false') }}
     runs-on: ubuntu-latest
-    environment: approval
     
     steps:
     - name: Checkout code
