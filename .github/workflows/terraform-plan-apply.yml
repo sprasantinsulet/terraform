@@ -78,21 +78,15 @@ jobs:
           ${{ inputs.terraform-directory }}/tfplan
           ${{ inputs.terraform-directory }}/plan-summary.txt
 
-  terraform-approval:
-    name: Wait for Approval
-    needs: terraform-plan
-    if: ${{ inputs.plan-only == false && inputs.auto_approve == false }}
+  terraform-apply:
+    name: Terraform Apply
+    needs: [terraform-plan]
     runs-on: ubuntu-latest
     
     steps:
-    - name: Debug Approval Job
-      run: |
-        echo "=== APPROVAL JOB DEBUG ==="
-        echo "plan-only: ${{ inputs.plan-only }}"
-        echo "auto-approve: ${{ inputs.auto_approve }}"
-        echo "has_changes: ${{ needs.terraform-plan.outputs.has_changes }}"
-        echo "=========================="
-        
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
     - name: Download Plan Files
       uses: actions/download-artifact@v4
       with:
@@ -104,15 +98,10 @@ jobs:
       with:
         terraform_version: ${{ inputs.terraform-version }}
         
-    - name: Show Plan Summary
+    - name: Terraform Init
       working-directory: ${{ inputs.terraform-directory }}
-      run: |
-        echo "=== TERRAFORM PLAN SUMMARY ==="
-        cat plan-summary.txt
-        echo ""
-        echo "=== APPROVAL REQUIRED ==="
-        echo "Please approve this deployment using the manual approval step below."
-        
+      run: terraform init
+
     - name: Manual Approval
       uses: trstringer/manual-approval@v1
       with:
@@ -138,32 +127,6 @@ jobs:
           - Plan file: Available in workflow artifacts
           - Plan summary: Available in workflow artifacts
           
-          **⚠️ Warning:** This will apply infrastructure changes to your environment.
-
-  terraform-apply:
-    name: Terraform Apply
-    needs: [terraform-plan, terraform-approval]
-    if: ${{ inputs.plan-only == false && (inputs.auto_approve == true || needs.terraform-plan.outputs.has_changes == 'false') }}
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Download Plan Files
-      uses: actions/download-artifact@v4
-      with:
-        name: terraform-files
-        path: ${{ inputs.terraform-directory }}
-        
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: ${{ inputs.terraform-version }}
-        
-    - name: Terraform Init
-      working-directory: ${{ inputs.terraform-directory }}
-      run: terraform init
         
     - name: Terraform Apply
       working-directory: ${{ inputs.terraform-directory }}
