@@ -6,18 +6,18 @@ on:
       auto_approve:
         description: 'Auto-approve changes (skip approval)'
         required: false
-        type: boolean
-        default: false
+        type: string
+        default: 'false'
       plan_only:
         description: 'Only run terraform plan, skip apply'
         required: false
-        type: boolean
-        default: false
+        type: string
+        default: 'false'
 
 jobs:
   test-terraform:
     uses: ./.github/workflows/terraform-plan-apply.yml
     with:
       terraform-directory: './terraform'
-      auto-approve: ${{ github.event.inputs.auto_approve }}
-      plan-only: ${{ github.event.inputs.plan_only }}
+      auto-approve: ${{ github.event.inputs.auto_approve == 'true' }}
+      plan-only: ${{ github.event.inputs.plan_only == 'true' }}
