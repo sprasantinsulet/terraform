@@ -22,6 +22,10 @@ on:
 #       auto-approve: ${{ github.event.inputs.auto_approve == 'true' }}
 #       plan-only: ${{ github.event.inputs.plan_only == 'true' }}
 
+permissions:
+  contents: read
+  issues: write
+  actions: read
 
 jobs:
   approve:
