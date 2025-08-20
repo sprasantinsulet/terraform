@@ -30,7 +30,7 @@ jobs:
       - uses: trstringer/manual-approval@v1
         with:
           secret: ${{ github.TOKEN }}
-          approvers: someone
+          approvers: sprasantinsulet
           minimum-approvals: 1
 
   follow-up-job:
