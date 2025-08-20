@@ -14,10 +14,29 @@ on:
         type: string
         default: 'false'
 
+# jobs:
+#   test-terraform:
+#     uses: ./.github/workflows/terraform-plan-apply.yml
+#     with:
+#       terraform-directory: './terraform'
+#       auto-approve: ${{ github.event.inputs.auto_approve == 'true' }}
+#       plan-only: ${{ github.event.inputs.plan_only == 'true' }}
+
+
 jobs:
-  test-terraform:
-    uses: ./.github/workflows/terraform-plan-apply.yml
-    with:
-      terraform-directory: './terraform'
-      auto-approve: ${{ github.event.inputs.auto_approve == 'true' }}
-      plan-only: ${{ github.event.inputs.plan_only == 'true' }}
+  approve:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ github.TOKEN }}
+          approvers: someone
+          minimum-approvals: 1
+
+  follow-up-job:
+    needs: approve
+    runs-on: ubuntu-latest
+    if: ${{ always() && !failure() && !cancelled() }}
+    steps:
+      - run: echo "Running follow-up task"
+
