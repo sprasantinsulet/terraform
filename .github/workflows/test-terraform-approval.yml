@@ -20,4 +20,4 @@ jobs:
     with:
       terraform-directory: './terraform'
       auto-approve: ${{ github.event.inputs.auto_approve }}
-      plan_only: ${{ github.event.inputs.plan_only }}
+      plan-only: ${{ github.event.inputs.plan_only }}
