@@ -105,7 +105,7 @@ jobs:
     - name: Manual Approval
       uses: trstringer/manual-approval@v1
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        secret: ${{ secrets.GITHUB_TOKEN }}
         approvers: ${{ github.actor }}
         minimum-approvals: 1
         issue-title: "🚀 Terraform Approval Required - ${{ github.ref_name }}"
@@ -127,6 +127,7 @@ jobs:
           - Plan file: Available in workflow artifacts
           - Plan summary: Available in workflow artifacts
           
+          **⚠️ Warning:** This will apply infrastructure changes to your environment.
         
     - name: Terraform Apply
       working-directory: ${{ inputs.terraform-directory }}
