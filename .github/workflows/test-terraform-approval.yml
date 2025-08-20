@@ -30,6 +30,7 @@ jobs:
       - uses: trstringer/manual-approval@v1
         with:
           secret: ${{ github.TOKEN }}
+          INPUT_APPROVERS: sprasantinsulet
 
   follow-up-job:
     needs: approve
