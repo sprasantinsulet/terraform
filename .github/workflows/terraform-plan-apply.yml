@@ -1,0 +1,153 @@
+name: Terraform Plan and Apply
+
+on:
+  workflow_call:
+    inputs:
+      terraform-version:
+        description: 'Terraform version to use'
+        required: false
+        type: string
+        default: '1.5.0'
+      terraform-directory:
+        description: 'Directory containing Terraform files'
+        required: false
+        type: string
+        default: '.'
+      auto-approve:
+        description: 'Auto-approve terraform apply (skip approval)'
+        required: false
+        type: boolean
+        default: false
+      plan-only:
+        description: 'Only run terraform plan, skip apply'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  terraform-plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    outputs:
+      has-changes: ${{ steps.plan.outputs.has-changes }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ inputs.terraform-version }}
+        
+    - name: Terraform Init
+      working-directory: ${{ inputs.terraform-directory }}
+      run: terraform init
+        
+    - name: Terraform Plan
+      id: plan
+      working-directory: ${{ inputs.terraform-directory }}
+      run: |
+        terraform plan -out=tfplan
+        
+        # Check if plan has changes
+        if terraform show tfplan | grep -q "No changes"; then
+          echo "has-changes=false" >> $GITHUB_OUTPUT
+          echo "No changes detected."
+        else
+          echo "has-changes=true" >> $GITHUB_OUTPUT
+          echo "Changes detected."
+        fi
+        
+        # Save plan summary
+        terraform show tfplan > plan-summary.txt
+        
+    - name: Upload Plan Files
+      uses: actions/upload-artifact@v4
+      with:
+        name: terraform-files
+        path: |
+          ${{ inputs.terraform-directory }}/tfplan
+          ${{ inputs.terraform-directory }}/plan-summary.txt
+
+  terraform-approval:
+    name: Wait for Approval
+    needs: terraform-plan
+    if: ${{ inputs.plan-only == false && inputs.auto-approve == false && needs.terraform-plan.outputs.has-changes == 'true' }}
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Download Plan Files
+      uses: actions/download-artifact@v4
+      with:
+        name: terraform-files
+        path: ${{ inputs.terraform-directory }}
+        
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ inputs.terraform-version }}
+        
+    - name: Show Plan Summary
+      working-directory: ${{ inputs.terraform-directory }}
+      run: |
+        echo "=== TERRAFORM PLAN SUMMARY ==="
+        cat plan-summary.txt
+        echo ""
+        echo "=== APPROVAL REQUIRED ==="
+        echo "Please approve this deployment by commenting on the issue below."
+        
+    - name: Wait for Approval
+      uses: trstringer/wait-for-approval@v1.11.0
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        approvers: ${{ github.actor }}
+        minimum-approvals: 1
+        issue-title: "Approve Terraform Changes - ${{ github.ref_name }}"
+        issue-body: |
+          ## Terraform Changes Ready to Apply
+          
+          **Branch:** ${{ github.ref_name }}
+          **Directory:** ${{ inputs.terraform-directory }}
+          
+          Please review the plan above and approve if the changes look correct.
+          
+          **To approve:** Comment with "approve" or "LGTM"
+
+  terraform-apply:
+    name: Terraform Apply
+    needs: [terraform-plan, terraform-approval]
+    if: ${{ inputs.plan-only == false && (inputs.auto-approve == true || needs.terraform-plan.outputs.has-changes == 'false' || (needs.terraform-plan.outputs.has-changes == 'true' && inputs.auto-approve == false)) }}
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download Plan Files
+      uses: actions/download-artifact@v4
+      with:
+        name: terraform-files
+        path: ${{ inputs.terraform-directory }}
+        
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ inputs.terraform-version }}
+        
+    - name: Terraform Init
+      working-directory: ${{ inputs.terraform-directory }}
+      run: terraform init
+        
+    - name: Terraform Apply
+      working-directory: ${{ inputs.terraform-directory }}
+      run: |
+        echo "Applying Terraform plan..."
+        terraform apply tfplan
+        echo "✅ Terraform apply completed!"
+        
+    - name: Show Results
+      working-directory: ${{ inputs.terraform-directory }}
+      run: |
+        echo "=== APPLY RESULTS ==="
+        terraform show
