@@ -28,8 +28,6 @@ jobs:
         with:
           secret: ${{ github.TOKEN }}
           approvers: sprasantinsulet
-      
-      - run: echo "Terraform changes approved"
 
   follow-up-job:
     needs: approve
