@@ -24,10 +24,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: trstringer/manual-approval@v1.11.0
+        timeout-minutes: 1
         with:
           secret: ${{ github.TOKEN }}
-          timeout-minutes: 1
           approvers: sprasantinsulet
+      
+      - run: echo "Terraform changes approved"
 
   follow-up-job:
     needs: approve
