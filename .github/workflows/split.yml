@@ -1,0 +1,39 @@
+name: Split.io CLI - DockerHub Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      flag_name:
+        description: 'Feature flag name to update'
+        required: true
+        default: 'test_flag'
+      treatment:
+        description: 'Treatment to set (on/off)'
+        required: true
+        default: 'on'
+        type: choice
+        options:
+        - on
+        - off
+      workspace_id:
+        description: 'Split.io workspace ID'
+        required: true
+        default: '0210c6e0-45f6-11ef-b5c3-96efbcda2157'
+      environment_id:
+        description: 'Split.io environment ID'
+        required: true
+        default: '3dcfbab0-45f6-11ef-a919-d2230ba6d777'
+
+jobs:
+  run-splitio-command:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Run Split.io CLI command using DockerHub image
+      run: |
+        docker run --rm -it -v $(pwd):/data -w /data sponmuth/split feature-flag definitions update ${{ github.event.inputs.flag_name || 'test_flag' }} --workspace-id ${{ github.event.inputs.workspace_id || '0210c6e0-45f6-11ef-b5c3-96efbcda2157' }} --environment-id ${{ github.event.inputs.environment_id || '3dcfbab0-45f6-11ef-a919-d2230ba6d777' }} --api-key ${{ secrets.SPLITIO_API_KEY }} --treatment ${{ github.event.inputs.treatment || 'on' }}
+      env:
+        SPLITIO_API_KEY: ${{ secrets.SPLITIO_API_KEY }}
