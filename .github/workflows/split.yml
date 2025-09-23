@@ -10,11 +10,11 @@ on:
       treatment:
         description: 'Treatment to set'
         required: true
-        default: 'on'
+        default: "on"
         type: choice
         options:
-          - on
-          - off
+          - "on"
+          - "off"
       workspace_id:
         description: 'Split.io workspace ID'
         required: true
