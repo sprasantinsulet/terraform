@@ -8,13 +8,13 @@ on:
         required: true
         default: 'test_flag'
       treatment:
-        description: 'Treatment to set (on/off)'
+        description: 'Treatment to set'
         required: true
         default: 'on'
         type: choice
         options:
-        - on
-        - off
+          - on
+          - off
       workspace_id:
         description: 'Split.io workspace ID'
         required: true
