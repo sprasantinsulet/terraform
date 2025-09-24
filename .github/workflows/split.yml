@@ -36,4 +36,4 @@ jobs:
     steps:
       - name: Run Split.io CLI command
         run: |
-          split feature-flag definitions update ${{ github.event.inputs.flag_name || 'test_flag' }} --workspace-id ${{ github.event.inputs.workspace_id || '0210c6e0-45f6-11ef-b5c3-96efbcda2157' }} --environment-id ${{ github.event.inputs.environment_id || '3dcfbab0-45f6-11ef-a919-d2230ba6d777' }} --api-key $SPLITIO_API_KEY --treatment ${{ github.event.inputs.treatment || 'on' }}
+          feature-flag definitions update ${{ github.event.inputs.flag_name || 'test_flag' }} --workspace-id ${{ github.event.inputs.workspace_id || '0210c6e0-45f6-11ef-b5c3-96efbcda2157' }} --environment-id ${{ github.event.inputs.environment_id || '3dcfbab0-45f6-11ef-a919-d2230ba6d777' }} --api-key $SPLITIO_API_KEY --treatment ${{ github.event.inputs.treatment || 'on' }}
