@@ -71,6 +71,8 @@ This module creates and manages MongoDB Atlas projects with comprehensive networ
 
 ## Usage
 
+### Basic Usage
+
 ```hcl
 module "mongodb_atlas" {
   source = "./mongodbatlas_project"
@@ -83,5 +85,72 @@ module "mongodb_atlas" {
 
   # Optional
   tags = var.tags
+}
+```
+
+### Advanced Usage with Network Peering
+
+```hcl
+module "mongodb_atlas" {
+  source = "./mongodbatlas_project"
+
+  # Authentication
+  public_key   = var.atlas_public_key
+  private_key  = var.atlas_private_key
+  org_id       = var.atlas_org_id
+  project_name = "production-database"
+
+  # Network Peering Configuration
+  enable_network_peering              = true
+  cloud_provider                      = "AWS"
+  atlas_cidr_block                   = "10.8.0.0/21"
+  aws_region_name_network_container   = "us-east-1"
+  aws_accepter_region_name            = "us-east-1"
+  route_table_cidr_block             = "10.0.0.0/16"
+  vpc_id                             = aws_vpc.main.id
+  aws_account_id                     = "123456789012"
+
+  # Security Configuration
+  ip_access_list = [
+    {
+      cidr_block = "10.0.0.0/8"
+      comment    = "Internal network access"
+    },
+    {
+      aws_security_group = "sg-12345678"
+      comment           = "Application security group"
+    },
+    {
+      ip_address = "203.0.113.1"
+      comment    = "Admin workstation"
+    }
+  ]
+
+  # Feature Configuration
+  is_performance_advisor_enabled                   = true
+  is_realtime_performance_panel_enabled           = true
+  is_data_explorer_enabled                        = true
+  custom_dns_enabled                              = true
+
+  # Project Limits
+  limits = [
+    {
+      name  = "atlas.project.maxClusters"
+      value = 10
+    },
+    {
+      name  = "atlas.project.maxUsers"
+      value = 100
+    }
+  ]
+
+  # Tags
+  tags = {
+    Environment   = "production"
+    Project       = "data-platform"
+    CostCenter    = "engineering"
+    Owner         = "data-team"
+    BackupPolicy  = "daily"
+  }
 }
 ```
