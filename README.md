@@ -107,7 +107,7 @@ module "mongodb_atlas" {
   aws_region_name_network_container   = "us-east-1"
   aws_accepter_region_name            = "us-east-1"
   route_table_cidr_block             = "10.0.0.0/16"
-  vpc_id                             = aws_vpc.main.id
+  vpc_id                             =  "vpc-ajdbwh11"
   aws_account_id                     = "123456789012"
 
   # Security Configuration
