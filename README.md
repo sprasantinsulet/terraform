@@ -1,81 +1,87 @@
-# Simple Terraform Approval Workflow
+# MongoDB Atlas Terraform Module
 
-A very simple GitHub Actions workflow for Terraform deployments with built-in approval using the `trstringer/manual-approval` action.
+This module creates and manages MongoDB Atlas projects with comprehensive networking, security, and feature configuration.
 
-## What It Does
+## Requirements
 
-1. **Plan**: Runs `terraform plan` and detects changes
-2. **Approve**: Creates a GitHub issue and waits for manual approval
-3. **Apply**: Applies changes after approval
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
+| <a name="requirement_mongodbatlas"></a> [mongodbatlas](#requirement\_mongodbatlas) | >= 2.0.1 |
 
-## Quick Test
+## Providers
 
-### 1. Run Test Workflow
-1. Go to **Actions** → **Test Terraform Approval**
-2. Click **"Run workflow"**
-3. Choose:
-   - `auto_approve: false` (requires approval)
-   - `plan_only: false` (runs plan + apply)
-4. Click **"Run workflow"**
+| Name | Version |
+|------|---------|
+| <a name="provider_mongodbatlas"></a> [mongodbatlas](#provider\_mongodbatlas) | 2.0.1 |
 
-## How It Works
+## Resources
 
-- **No changes detected** → Applies immediately
-- **Changes detected** → Creates approval issue → Waits for approval → Applies changes
+| Name | Type |
+|------|------|
+| [mongodbatlas_project.this](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project) | resource |
+| [mongodbatlas_network_container.this](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/network_container) | resource |
+| [mongodbatlas_network_peering.this](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/network_peering) | resource |
+| [mongodbatlas_project_ip_access_list.with_peering](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project_ip_access_list) | resource |
+| [mongodbatlas_custom_dns_configuration_cluster_aws.this](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/custom_dns_configuration_cluster_aws) | resource |
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_public_key"></a> [public\_key](#input\_public\_key) | Public API key to authenticate to Atlas | `string` | n/a | yes |
+| <a name="input_private_key"></a> [private\_key](#input\_private\_key) | Private API key to authenticate to Atlas | `string` | n/a | yes |
+| <a name="input_org_id"></a> [org\_id](#input\_org\_id) | Atlas Organization ID | `string` | n/a | yes |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Project name | `string` | n/a | yes |
+| <a name="input_is_collect_database_specifics_statistics_enabled"></a> [is\_collect\_database\_specifics\_statistics\_enabled](#input\_is\_collect\_database\_specifics\_statistics\_enabled) | Whether to collect database-specific statistics | `bool` | `true` | no |
+| <a name="input_is_data_explorer_enabled"></a> [is\_data\_explorer\_enabled](#input\_is\_data\_explorer\_enabled) | Whether to enable Data Explorer | `bool` | `true` | no |
+| <a name="input_is_extended_storage_sizes_enabled"></a> [is\_extended\_storage\_sizes\_enabled](#input\_is\_extended\_storage\_sizes\_enabled) | Whether to enable extended storage sizes | `bool` | `true` | no |
+| <a name="input_is_performance_advisor_enabled"></a> [is\_performance\_advisor\_enabled](#input\_is\_performance\_advisor\_enabled) | Whether to enable Performance Advisor | `bool` | `true` | no |
+| <a name="input_is_realtime_performance_panel_enabled"></a> [is\_realtime\_performance\_panel\_enabled](#input\_is\_realtime\_performance\_panel\_enabled) | Whether to enable Real-Time Performance Panel | `bool` | `true` | no |
+| <a name="input_is_schema_advisor_enabled"></a> [is\_schema\_advisor\_enabled](#input\_is\_schema\_advisor\_enabled) | Whether to enable Schema Advisor | `bool` | `true` | no |
+| <a name="input_custom_dns_enabled"></a> [custom\_dns\_enabled](#input\_custom\_dns\_enabled) | Whether to enable Custom DNS | `bool` | `true` | no |
+| <a name="input_enable_network_peering"></a> [enable\_network\_peering](#input\_enable\_network\_peering) | Whether to enable network peering with AWS VPC | `bool` | `false` | no |
+| <a name="input_limits"></a> [limits](#input\_limits) | Project limits | <pre>list(object({<br/>    name  = string<br/>    value = number<br/>  }))</pre> | `[]` | no |
+| <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to the project | `map(string)` | `{}` | no |
+| <a name="input_ip_access_list"></a> [ip\_access\_list](#input\_ip\_access\_list) | List of IP access rules for the project | <pre>list(object({<br/>    cidr_block         = optional(string)<br/>    ip_address         = optional(string)<br/>    aws_security_group = optional(string)<br/>    comment            = string<br/>  }))</pre> | `[]` | no |
+| <a name="input_cloud_provider"></a> [cloud\_provider](#input\_cloud\_provider) | Cloud provider for network peering | `string` | n/a | yes |
+| <a name="input_atlas_cidr_block"></a> [atlas\_cidr\_block](#input\_atlas\_cidr\_block) | Atlas CIDR block for network container | `string` | n/a | yes |
+| <a name="input_aws_region_name_network_container"></a> [aws\_region\_name\_network\_container](#input\_aws\_region\_name\_network\_container) | AWS region name for network container | `string` | n/a | yes |
+| <a name="input_aws_accepter_region_name"></a> [aws\_accepter\_region\_name](#input\_aws\_accepter\_region\_name) | AWS accepter region name for network peering | `string` | n/a | yes |
+| <a name="input_route_table_cidr_block"></a> [route\_table\_cidr\_block](#input\_route\_table\_cidr\_block) | Route table CIDR block for network peering | `string` | n/a | yes |
+| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | VPC ID for network peering | `string` | n/a | yes |
+| <a name="input_aws_account_id"></a> [aws\_account\_id](#input\_aws\_account\_id) | AWS account ID for network peering | `string` | n/a | yes |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_project_id"></a> [project\_id](#output\_project\_id) | The MongoDB Atlas project ID |
+| <a name="output_project_name"></a> [project\_name](#output\_project\_name) | The MongoDB Atlas project name |
+| <a name="output_project_org_id"></a> [project\_org\_id](#output\_project\_org\_id) | The MongoDB Atlas organization ID |
+| <a name="output_container_id"></a> [container\_id](#output\_container\_id) | The network container ID |
+| <a name="output_peering_id"></a> [peering\_id](#output\_peering\_id) | The network peering ID |
+| <a name="output_ip_access_list_ids"></a> [ip\_access\_list\_ids](#output\_ip\_access\_list\_ids) | List of IP access list entry IDs |
+| <a name="output_ip_access_list_details"></a> [ip\_access\_list\_details](#output\_ip\_access\_list\_details) | Details of all IP access list entries |
+| <a name="output_custom_dns_enabled"></a> [custom\_dns\_enabled](#output\_custom\_dns\_enabled) | Whether custom DNS is enabled |
+| <a name="output_project_features"></a> [project\_features](#output\_project\_features) | Project feature settings |
+| <a name="output_project_tags"></a> [project\_tags](#output\_project\_tags) | Tags applied to the project |
+| <a name="output_network_container_details"></a> [network\_container\_details](#output\_network\_container\_details) | Network container configuration details |
+| <a name="output_network_peering_details"></a> [network\_peering\_details](#output\_network\_peering\_details) | Network peering configuration details |
 
 ## Usage
 
-```yaml
-jobs:
-  terraform:
-    uses: ./.github/workflows/terraform-plan-apply.yml
-    with:
-      terraform-directory: './terraform'
-      auto_approve: false  # Requires approval
-      plan_only: false     # Runs plan + apply
+```hcl
+module "mongodb_atlas" {
+  source = "./mongodbatlas_project"
+
+  # Required
+  public_key   = var.public_key
+  private_key  = var.private_key
+  org_id       = var.org_id
+  project_name = var.project_name
+
+  # Optional
+  tags = var.tags
+}
 ```
-
-## Options
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `terraform-directory` | Where your Terraform files are | `.` |
-| `auto_approve` | Skip approval (true/false) | `false` |
-| `plan_only` | Only plan, no apply (true/false) | `false` |
-
-## Test Files
-
-- `terraform/main.tf` - Simple test configuration
-- `.github/workflows/test-terraform-approval.yml` - Test workflow
-- `.github/workflows/terraform-plan-apply.yml` - Main workflow
-
-## Test Scenarios
-
-1. **Manual Approval**: `auto_approve: false` → creates approval issue
-2. **Plan Only**: `plan_only: true` → just review, no apply
-3. **Auto-approve**: `auto_approve: true` → skips approval
-
-## To Approve
-
-When an approval issue is created:
-1. **Go to the issue** (link provided in workflow logs)
-2. **Click "Approve"** button in the issue
-3. **Workflow continues** automatically after approval
-
-## How the Approval Works
-
-1. **Workflow creates issue** with plan summary and approval button
-2. **Waits for approval** via the manual approval action
-3. **Approval button** appears in the GitHub issue
-4. **Click approve** to continue the workflow
-5. **Workflow proceeds** to apply changes
-
-## Benefits
-
-- ✅ **Simple approval button** - just click "Approve"
-- ✅ **Reliable action** - `trstringer/manual-approval@v1` is well-maintained
-- ✅ **No environment setup** required
-- ✅ **Clear approval process** - obvious approve button
-- ✅ **Audit trail** - who approved and when
-
-That's it! Very simple approval workflow using the manual approval action. 🎯
